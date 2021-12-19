@@ -2,10 +2,11 @@
 import re
 from .lsi_similarity import LsiSimilarity
 
+from cn_summary.utils import text_legal
 
 lsi_similarity = LsiSimilarity()
 
-
+@text_legal
 def lsi(text):
     model = LsiSummarization()
     return model.summarization(text)
@@ -29,9 +30,10 @@ class LsiSummarization():
         # 存放句子得分
         sentences_score = {sent: lsi_similarity.similarity(sent, doc) for sent in sentences}
 
+        keep_len = max(int(len(sentences) * ratio), 1)
+
         # 根据得分，选出较高得分的句子
-        sentences_score_order = sorted(sentences_score.items(), key=lambda item: -item[1])[
-                                : int(len(sentences) * ratio)]
+        sentences_score_order = sorted(sentences_score.items(), key=lambda item: -item[1])[: keep_len]
 
         # 将较高的分的句子按原文本进行排序输出
         selected_sentences = {sent: sentences_order[sent] for sent, score in sentences_score_order}
