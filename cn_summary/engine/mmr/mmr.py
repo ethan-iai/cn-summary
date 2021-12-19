@@ -74,6 +74,10 @@ def clean_data(doc, stopwords):
     origin_sent_order = {}
     for idx, sent in enumerate(sentences):
         clean_sent = clean_sentence(jieba.lcut(sent), stopwords=stopwords)
+
+        if len(clean_sent) == 0:
+            continue
+
         clean_sentences.append(clean_sent)
         origin_clean_dic[clean_sent] = sent
         origin_sent_order[sent] = idx
