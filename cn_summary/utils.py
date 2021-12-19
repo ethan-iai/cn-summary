@@ -8,10 +8,10 @@ def get_src_path(path):
     return os.path.abspath(os.path.join(prefix, path))
 
 def text_legal(func):
-    def wrapper(text):
+    def wrapper(text, *args, **kwargs):
         text = re.sub('\s', '', text)
         seperators = ['。', '!', '！', '？', '?']
         if text[-1] not in seperators:
             text += '。'
-        return func(text)
+        return func(text, *args, **kwargs)
     return wrapper

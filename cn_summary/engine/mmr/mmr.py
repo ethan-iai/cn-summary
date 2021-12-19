@@ -48,7 +48,7 @@ def calculate_similarity(sentence, doc):
     doc_str = ' '.join(doc)
     vocab = list(set((sentence + ' ' + doc_str).split()))
 
-    cv = CountVectorizer(vocabulary=vocab)
+    cv = CountVectorizer(vocabulary=vocab, strip_accents="unicode")
 
     docVector = cv.fit_transform([doc_str])
     sentenceVector = cv.fit_transform([sentence])
@@ -96,7 +96,7 @@ def calculate_scores_sentence_to_doc(clean_sentences):
     return scores
 
 @text_legal
-def mmr(text, alpha=0.5, ratio=0.2):
+def mmr(text, num_sentences=None, ratio=0.2, alpha=0.5):
     """
     主流程
     :param text:
@@ -110,7 +110,8 @@ def mmr(text, alpha=0.5, ratio=0.2):
 
     scores = calculate_scores_sentence_to_doc(clean_sentences)
 
-    summary_num = len(clean_sentences)*ratio
+    summary_num = min(num_sentences, len(clean_sentences)) if num_sentences is not None \
+        else max(int(len(clean_sentences) * ratio), 1)
 
     summary = {}
 
@@ -120,10 +121,10 @@ def mmr(text, alpha=0.5, ratio=0.2):
             if not sentence in summary:
                 mmr[sentence] = alpha * scores[sentence] - (1-alpha) * calculate_similarity(sentence, summary)
         selected = sorted(mmr.items(), key=lambda item: -item[1])[0][0]
-        summary[origin_clean_dic[selected]] = origin_sent_order[origin_clean_dic[selected]]
+        summary[selected] = origin_sent_order[origin_clean_dic[selected]]
         summary_num -= 1
 
-    summary = "".join([sent for (sent, order) in sorted(summary.items(), key=lambda item: item[1])])
+    summary = "".join([origin_clean_dic[sent] for (sent, order) in sorted(summary.items(), key=lambda item: item[1])])
     return summary
 
 

@@ -7,9 +7,9 @@ from cn_summary.utils import text_legal
 lda_similarity = LdaSimilarity()
 
 @text_legal
-def lda(text):
+def lda(text, num_sentences=None, ratio=0.2):
     model = LdaSummarization()
-    return model.summarization(text)
+    return model.summarization(text, num_sentences, ratio)
 
 class LdaSummarization():
     def split_doc(self, doc):
@@ -19,7 +19,7 @@ class LdaSummarization():
         sentences = doc.split('##')
         return sentences[:-1]
 
-    def summarization(self, doc, ratio=0.2):
+    def summarization(self, doc, num_sentences=None, ratio=0.2):
 
         sentences = self.split_doc(doc)
 
@@ -28,9 +28,10 @@ class LdaSummarization():
 
         # 存放句子得分
         sentences_score = {sent: lda_similarity.similarity(sent, doc) for sent in sentences}
-
-        keep_len = max(int(len(sentences) * ratio), 1)
-
+        
+        keep_len = min(num_sentences, len(sentences)) if num_sentences is not None \
+            else max(int(len(sentences) * ratio), 1)
+        
         # 根据得分，选出较高得分的句子
         sentences_score_order = sorted(sentences_score.items(), key=lambda item: -item[1])[: keep_len]
 

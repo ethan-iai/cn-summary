@@ -32,7 +32,7 @@ def calculate_sentence_score(sentence, stopwords):
     return sentence_score
 
 @text_legal
-def tf_idf(text, ratio=0.2):
+def tf_idf(text, num_sentences=None, ratio=0.2):
     stopwords = load_stopwords(STOPWORDS_PATH)
 
     # 对文本进行分割
@@ -45,7 +45,8 @@ def tf_idf(text, ratio=0.2):
     sentences_score = {sent: calculate_sentence_score(sent, stopwords) for sent in sentences}
 
     # 根据得分，选出较高得分的句子
-    keep_len = max(int(len(sentences) * ratio), 1)
+    keep_len = min(num_sentences, len(sentences)) if num_sentences is not None \
+            else max(int(len(sentences) * ratio), 1)
     sentences_score_order = sorted(sentences_score.items(), key=lambda item: -item[1])[: keep_len]
 
     # 将较高的分的句子按原文本进行排序输出

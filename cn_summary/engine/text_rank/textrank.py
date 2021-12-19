@@ -96,7 +96,7 @@ def pagerank(A, eps=0.0001, d=0.85):
         P = new_P
 
 @text_legal
-def textrank(text, ratio=0.2):
+def textrank(text, num_sentences=None, ratio=0.2):
     stopwords = load_stopwords(STOPWORDS_PATH)
 
     origin_sentences, cut_sentences = split_doc(text, stopwords=stopwords)
@@ -107,7 +107,8 @@ def textrank(text, ratio=0.2):
 
     sentences_ranks = [item[0] for item in sorted(enumerate(sentences_ranks), key=lambda item: -item[1])]
 
-    keep_len = max(int(len(origin_sentences) * ratio), 1)
+    keep_len = min(num_sentences, len(origin_sentences)) if num_sentences is not None \
+        else max(int(len(origin_sentences) * ratio), 1)
     selected_sentences_index = sorted(sentences_ranks[: keep_len])
 
     summary = []
