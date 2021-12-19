@@ -2,3 +2,4 @@ jieba
 sklearn
 gensim
 nltk
+transformers
