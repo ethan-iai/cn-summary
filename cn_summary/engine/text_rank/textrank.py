@@ -9,13 +9,20 @@
 import re
 import jieba
 import numpy as np
-from nltk.cluster.util import cosine_distance
+from math import sqrt
+# from nltk.cluster.util import cosine_distance
 
 from cn_summary.utils import get_src_path, text_legal
 
 MIN_SEQ_LEN = 5
 STOPWORDS_PATH = get_src_path('./stopwords.txt')
 
+def cosine_distance(u, v, eps=1e-6):
+    """
+    Returns 1 minus the cosine of the angle between vectors v and u. This is
+    equal to 1 - (u.v / |u||v|).
+    """
+    return 1 - (np.dot(u, v) / max(sqrt(np.dot(u, u)) * sqrt(np.dot(v, v)), eps))
 
 def load_stopwords(file_path):
     with open(file_path, encoding='utf-8') as f:
@@ -32,7 +39,7 @@ def split_doc(doc, stopwords=None):
 
     while len(doc) > 0:
         for i in range(len(doc)):
-            if doc[i] in ['。', '！', '?', '？']:
+            if doc[i] in ['。', '!', '！', '?', '？']:
                 sentences.append(doc[:i+1])
                 doc = doc[i+1:]
                 break
