@@ -1,2 +1,2 @@
 # cn-summary
- repostiory for generation Chinese summary with multiple algorithms
+ repostiory for generation of Chinese text summary with multiple algorithms
