@@ -1,5 +1,5 @@
 jieba
 sklearn
 gensim
-nltk
+# nltk
 transformers
