@@ -26,6 +26,7 @@ class SentenceHandler(object):
         for c in sents:
             if self.max_length > len(c) > self.min_length:
                     to_return.append(c)
+        assert len(to_return) > 0, "Splited setences are empty"
         return to_return
 
     def __call__(self, doc):
