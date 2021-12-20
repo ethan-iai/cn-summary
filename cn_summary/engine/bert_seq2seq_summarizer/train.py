@@ -8,7 +8,7 @@ from tqdm import tqdm
 from transformers import AdamW, get_linear_schedule_with_warmup
 
 from .data import get_dataloader
-from .model import BertForSeq2Seq
+from .model import BertForSeq2Seq, set_device
 
 from cn_summary.utils import get_src_path
 
@@ -61,19 +61,20 @@ def run(args):
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
-    device = torch.device("cuda:{args.gpu}" if torch.cuda.is_available() else 'cpu')
-    
+    device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu')
+    set_device(device)
+     
     train_loader = get_dataloader(
         os.path.join(args.data, 'train.json'), 
         batch_size=args.batch_size, 
-        num_workers=args.num_workers,
+        num_workers=args.workers,
         pin_memory=True
     )
 
     val_loader = get_dataloader(
         os.path.join(args.data, 'test.json'), 
         batch_size=args.batch_size, 
-        num_workers=args.num_workers,
+        num_workers=args.workers,
         pin_memory=True
     )
 
@@ -88,7 +89,8 @@ def run(args):
     optimizer_grouped_parameters = [
         {'params': [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)],
         'weight_decay': 0.01},
-        {'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], 'weight_decay': 0.0}
+        {'params': [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], 
+         'weight_decay': 0.0}
     ]
 
     total_steps = len(train_loader) * args.epochs
@@ -134,7 +136,7 @@ def run(args):
                 token_type_ids = batch_data["token_type_ids"].to(device)
                 token_type_ids_for_mask = batch_data["token_type_ids_for_mask"].to(device)
                 labels = batch_data["labels"].to(device)
-                predictions, loss = model.forward(input_ids, token_type_ids, token_type_ids_for_mask, labels)                    
+                predictions, loss = model(input_ids, token_type_ids, token_type_ids_for_mask, labels)                    
                 epoch_loss_eval.append(loss.item())
                 
         valid_loss = np.mean(epoch_loss_eval)
