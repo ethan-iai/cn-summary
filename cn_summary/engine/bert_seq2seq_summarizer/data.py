@@ -3,7 +3,8 @@ import json
 import torch
 import torch.utils.data as data
 from torch.nn.utils.rnn import pad_sequence
-from tokenizer import Tokenizer
+
+from .tokenizer import Tokenizer
 
 # TRAIN_DATA_PATH = './data/train.tsv'
 # DEV_DATA_PATH = './data/dev.tsv'
@@ -52,8 +53,8 @@ class BertDataset(data.Dataset):
             data = json.load(fp)
 
             for item in data:
-                summary = data['title']
-                content = content['content']
+                summary = item['title']
+                content = item['content']
                 
                 input_ids, token_type_ids, token_type_ids_for_mask, labels = Tokenizer.encode(content, summary, max_len)
                        
