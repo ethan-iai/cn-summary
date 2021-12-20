@@ -15,6 +15,10 @@ CONFIG_NAME = 'config.json'
 WEIGHTS_NAME = 'pytorch_model.bin'
 device = "cuda" if torch.cuda.is_available() else 'cpu'
 
+def set_device(_device):
+    global device
+    device = _device
+    
 def gelu(x):
     """ gelu激活函数
         在GPT架构中，使用的是gelu函数的近似版本，公式如下:
