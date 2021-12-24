@@ -51,6 +51,7 @@ def parse_args():
                         help='evaluate model on validation set')
     parser.add_argument('--max-grad-norm', type=float, default=1.0)
     parser.add_argument('--save-dir', type=str, default=get_src_path('./saved_models'))
+    parser.add_argument('--save-freq', type=int, default=10)
     parser.add_argument('--gpu', default=0, type=int,
                         help='GPU id to use.')
     
@@ -141,7 +142,10 @@ def run(args):
                 
         valid_loss = np.mean(epoch_loss_eval)
         loss_vals_eval.append(valid_loss)    
-    
+
+        if epoch % args.save_freq == 0:
+            torch.save(model.state_dict(), os.path.join(args.save_dir, f'bert_{epoch:03d}.bin'))
+
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
             torch.save(model.state_dict(), os.path.join(args.save_dir, 'bert_best.bin'))
@@ -150,6 +154,7 @@ def run(args):
     l1, = plt.plot(np.linspace(1, args.epochs, args.epochs).astype(int), loss_vals)
     l2, = plt.plot(np.linspace(1, args.epochs, args.epochs).astype(int), loss_vals_eval)
     plt.legend(handles=[l1, l2], labels=['Train loss','Eval loss'], loc='best')
-    
+    plt.savefig(os.path.join(args.save_dir, 'loss.png'))
+
 if __name__ == '__main__':
     run(args=parse_args())
