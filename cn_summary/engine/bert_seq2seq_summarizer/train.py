@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
+import time
 import argparse
+import logging
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,10 +16,23 @@ from cn_summary.utils import get_src_path
 
 # N_EPOCHS = 30
 # LR = 5e-4
-WARMUP_PROPORTION = 0.1
+# WARMUP_PROPORTION = 0.1
 # MAX_GRAD_NORM = 1.0
 MODEL_PATH = get_src_path('./bert-base-chinese')
+LOG_PATH = get_src_path('./logs')
 # SAVE_DIR = get_src_path('./saved_models')
+
+logging.basicConfig(
+    filename=os.path.join(LOG_PATH, time.strftime(
+        'bert-%y-%m-%d-%H-%M.out', 
+        time.localtime()
+    )),
+    filemode='a',
+    format='%(asctime)s, %(levelname)s] %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S',
+    level=logging.DEBUG
+)
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -25,7 +40,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='PyTorch Bert seq2seq Training')
     parser.add_argument('data', metavar='DIR',
                         help='path to dataset')
-    parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
+    parser.add_argument('-j', '--workers', default=0, type=int, metavar='N',
                         help='number of data loading workers (default: 4)')
     parser.add_argument('--epochs', default=30, type=int, metavar='N',
                         help='number of total epochs to run')
@@ -50,6 +65,7 @@ def parse_args():
     parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                         help='evaluate model on validation set')
     parser.add_argument('--max-grad-norm', type=float, default=1.0)
+    parser.add_argument('--warm-up-epochs', type=int, default=3)
     parser.add_argument('--save-dir', type=str, default=get_src_path('./saved_models'))
     parser.add_argument('--save-freq', type=int, default=10)
     parser.add_argument('--gpu', default=0, type=int,
@@ -65,18 +81,18 @@ def run(args):
     device = torch.device(f'cuda:{args.gpu}' if torch.cuda.is_available() else 'cpu')
     set_device(device)
      
+    logging.info(f'Run on device: {device}')
+    
     train_loader = get_dataloader(
         os.path.join(args.data, 'train.json'), 
         batch_size=args.batch_size, 
-        num_workers=args.workers,
-        pin_memory=True
+        num_workers=args.workers
     )
 
     val_loader = get_dataloader(
         os.path.join(args.data, 'test.json'), 
-        batch_size=args.batch_size, 
-        num_workers=args.workers,
-        pin_memory=True
+        batch_size=args.batch_size,
+        num_workers=args.workers 
     )
 
     best_valid_loss = float('inf')
@@ -94,11 +110,12 @@ def run(args):
          'weight_decay': 0.0}
     ]
 
+    steps_per_epoch = len(train_loader)
     total_steps = len(train_loader) * args.epochs
     optimizer = AdamW(optimizer_grouped_parameters, lr=args.lr, eps=1e-8)
     scheduler = get_linear_schedule_with_warmup(
         optimizer, 
-        num_warmup_steps=int(WARMUP_PROPORTION * total_steps), 
+        num_warmup_steps=int(args.warm_up_epoch * steps_per_epoch), 
         num_training_steps=total_steps
     )
     
@@ -125,6 +142,7 @@ def run(args):
             optimizer.step()
             scheduler.step()
         loss_vals.append(np.mean(epoch_loss))
+        logging.info(f'[Train Epoch {epoch}] Train Loss: {loss_vals[-1]}')
         
         model.eval()
         epoch_loss_eval= []
@@ -141,7 +159,8 @@ def run(args):
                 epoch_loss_eval.append(loss.item())
                 
         valid_loss = np.mean(epoch_loss_eval)
-        loss_vals_eval.append(valid_loss)    
+        loss_vals_eval.append(valid_loss)
+        logging.info(f'[Eval Epoch {epoch}] Eval Loss: {loss_vals_eval[-1]}')    
 
         if epoch % args.save_freq == 0:
             torch.save(model.state_dict(), os.path.join(args.save_dir, f'bert_{epoch:03d}.bin'))
