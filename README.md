@@ -9,15 +9,19 @@ Repostiory for generation of Chinese text summary with multiple algorithms
 - TF-IDF
 - LDA
 - LSI
-- Bert Extractive (Bert + KNN)
-- Bert Seq-to-seq
+- Bert Extractive (Bert + k-means)
+- Bert Seq-to-seq (UNILM)
 ## Installation
 ```shell
 pip install -r requirements.txt
 pip install -e .
 ```
 
-## Examples 
+## Documentation
+
+In developing...
+
+## Run Summarization Methods
 
 ```python
 
@@ -36,6 +40,7 @@ document = """
 打造多种形式的高层次人才培养平台，加强后备人才培养力度，为科技和产业发展提供更加充分的人才支撑。
 """
 
+# extractive methods
 summary = cs.mmr(document, num_sentences=2)
 print(summary)
 
@@ -54,4 +59,20 @@ print(summary)
 summary = cs.bert_extract(document)
 print(summary)
 
+
+# abstractive method
+summary = cs.bert_seq2seq(document)
+print(summary)
+
+```
+
+### Train UNILM For Abstravice Method
+
+cn-summary provides command line to train UNILM. For example, to train UNILM for 90 epochs on gpu 0 using CLI:
+
+```shell
+python -m cn_summary.engine.bert_seq2seq_summarizer.train ./data \
+                                                    --epochs 90 \
+                                                    --batch-size 32 \
+                                                    --gpu 0
 ```
