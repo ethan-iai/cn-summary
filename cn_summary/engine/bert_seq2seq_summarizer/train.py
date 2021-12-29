@@ -65,7 +65,7 @@ def parse_args():
     parser.add_argument('-e', '--evaluate', dest='evaluate', action='store_true',
                         help='evaluate model on validation set')
     parser.add_argument('--max-grad-norm', type=float, default=1.0)
-    parser.add_argument('--warm-up-epochs', type=int, default=3)
+    parser.add_argument('--warmup-epochs', type=int, default=3)
     parser.add_argument('--save-dir', type=str, default=get_src_path('./saved_models'))
     parser.add_argument('--save-freq', type=int, default=10)
     parser.add_argument('--gpu', default=0, type=int,
@@ -115,7 +115,7 @@ def run(args):
     optimizer = AdamW(optimizer_grouped_parameters, lr=args.lr, eps=1e-8)
     scheduler = get_linear_schedule_with_warmup(
         optimizer, 
-        num_warmup_steps=int(args.warm_up_epoch * steps_per_epoch), 
+        num_warmup_steps=int(args.warmup_epochs * steps_per_epoch), 
         num_training_steps=total_steps
     )
     
@@ -168,7 +168,9 @@ def run(args):
         if valid_loss < best_valid_loss:
             best_valid_loss = valid_loss
             torch.save(model.state_dict(), os.path.join(args.save_dir, 'bert_best.bin'))
-        torch.cuda.empty_cache()
+        
+        with torch.cuda.device(f'cuda:{args.gpu}'):
+            torch.cuda.empty_cache()
    
     l1, = plt.plot(np.linspace(1, args.epochs, args.epochs).astype(int), loss_vals)
     l2, = plt.plot(np.linspace(1, args.epochs, args.epochs).astype(int), loss_vals_eval)
