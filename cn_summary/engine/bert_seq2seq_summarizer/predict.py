@@ -12,10 +12,11 @@ import numpy as np
 from .model import BertForSeq2Seq
 from .tokenizer import Tokenizer
 
-from cn_summary.utils import get_src_path
+from cn_summary.utils import get_src_path, text_legal
 
 MODEL_PATH = get_src_path('./saved_models')
 
+@text_legal
 def bert_seq2seq(text,
                  top_k=5, 
                  top_p=0.95,
