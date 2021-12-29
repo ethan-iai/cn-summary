@@ -23,7 +23,8 @@ def bert_seq2seq(text,
                  model_path=MODEL_PATH,
                  num_setences=None, 
                  ratio=0.2):
-    sample_generate(text, model_path, top_k, top_p)
+    summary = sample_generate(text, model_path, top_k, top_p)
+    return re.sub('\s', '', summary)
 
 
 def top_k_top_p_filtering(logits, top_k=0, top_p=0.0, filter_value=-float('Inf')):
