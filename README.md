@@ -4,7 +4,7 @@ Repostiory for generation of Chinese text summary with multiple algorithms
 
 ## features 
 
-- TexTRank
+- TextRank
 - MMR 
 - TF-IDF
 - LDA
